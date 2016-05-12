@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-var knex = require('knex');
+var knex = require('../db');
 
 router.post('/signup', function(req, res, next) {
     const errors = [];
@@ -13,6 +13,20 @@ router.post('/signup', function(req, res, next) {
       res.status(422).json({
         errors: errors
       })
+    } else {
+      knex('users')
+        .whereRaw('lower(email) = ?', req.body.email.toLowerCase())
+        .count()
+        .first()
+        .then(function (result) {
+          if (result.count === "0") {
+            res.json(result.count)
+          } else {
+            res.status(422).json({
+              errors: ["Email has been taken"]
+            })
+          }
+        })
     }
 });
 
